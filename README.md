@@ -13,21 +13,4 @@ Campus Club Explorer is a web application designed to help students discover, ex
 - **Frontend:** React, JavaScript, HTML5, CSS3
 - **Build Tool:** Vite
 
-## Getting Started
 
-To run this project locally, follow these steps:
-
-1. Clone the repository:
-```bash
-git clone https://github.com/Divya040504/campus-club-explorer.git
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Run the development server:
-```bash
-npm run dev
-```
