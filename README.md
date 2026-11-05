@@ -43,3 +43,5 @@ The database schema is stored in [supabase/migrations/20261105170000_initial_sch
 The migration uses `btree_gist` and a PostgreSQL exclusion constraint to reject overlapping events in the same venue. This protects scheduling even if events are created outside the frontend.
 
 The starter club records are in [supabase/migrations/20261105192000_seed_clubs.sql](./supabase/migrations/20261105192000_seed_clubs.sql). Run this migration after the initial schema migration to populate the `clubs` table.
+
+If Supabase reports `permission denied for table clubs`, run [supabase/migrations/20261105194000_grant_app_access.sql](./supabase/migrations/20261105194000_grant_app_access.sql) in the SQL Editor while signed-in users are present in the app.
