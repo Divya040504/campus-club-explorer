@@ -117,6 +117,25 @@ a { color: inherit; }
 .request-row { align-items: start; }
 .request-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .request-actions .join-button, .request-actions .details-button { font-size: .78rem; padding: 8px 10px; }
+.help-link { color: var(--teal-dark); font-size: .82rem; font-weight: 700; text-decoration: none; }
+.help-link:hover { text-decoration: underline; }
+.events-page { margin: 0 auto; max-width: 1100px; padding: 54px max(5vw, 24px) 90px; }
+.events-heading-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; }
+.event-form { margin-bottom: 28px; }
+.event-form .admin-panel-heading { align-items: center; }
+.event-form .admin-panel-heading h2 { margin: 0; }
+.event-form-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.event-form label { display: grid; font-size: .85rem; font-weight: 700; gap: 7px; }
+.event-form input, .event-form select, .event-form textarea { background: white; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); padding: 11px; }
+.event-form input:focus, .event-form select:focus, .event-form textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px #176b6622; outline: 0; }
+.event-description { grid-column: 1 / -1; }
+.events-list { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.event-card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--coral); border-radius: 8px; padding: 22px; }
+.event-card h2 { font-family: 'Space Grotesk', sans-serif; margin: 10px 0 7px; }
+.event-card p { color: var(--muted); line-height: 1.5; margin: 9px 0; }
+.event-date, .event-club { color: var(--teal-dark) !important; font-size: .8rem; font-weight: 700; }
+.event-time { font-size: .8rem; }
+.event-card .details-button { margin-top: 10px; }
 .request-status { font-size: .72rem; font-weight: 700; text-transform: capitalize; }
 .request-status.pending { color: #a26b00; }
 .request-status.approved { color: var(--teal); }
@@ -166,4 +185,7 @@ a { color: inherit; }
   .explorer-section { padding: 48px 18px 60px; }
   .section-heading { align-items: start; flex-direction: column; gap: 10px; }
   .club-grid { grid-template-columns: 1fr; }
+  .event-form-grid, .events-list { grid-template-columns: 1fr; }
+  .event-description { grid-column: auto; }
+  .events-heading-actions { align-items: stretch; flex-direction: column; }
 }

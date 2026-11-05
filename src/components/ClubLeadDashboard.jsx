@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { EventsPage } from './EventsPage';
 
 export function ClubLeadDashboard({ session, onSignOut }) {
   const [clubs, setClubs] = useState([]);
@@ -135,6 +136,7 @@ export function ClubLeadDashboard({ session, onSignOut }) {
             </section>
           </>
         )}
+        <EventsPage session={session} userRole="club_lead" />
       </main>
     </>
   );

@@ -3,6 +3,7 @@ import { supabase } from './lib/supabase';
 import { CategoryFilter } from './components/CategoryFilter';
 import { AdminDashboard } from './components/AdminDashboard';
 import { ClubLeadDashboard } from './components/ClubLeadDashboard';
+import { EventsPage } from './components/EventsPage';
 import { ClubDetailsModal } from './components/ClubDetailsModal';
 import { ClubGrid } from './components/ClubGrid';
 import { JoinedDrawer } from './components/JoinedDrawer';
@@ -30,6 +31,7 @@ export default function App() {
   const [requestError, setRequestError] = useState('');
   const [activeClub, setActiveClub] = useState(null);
   const [isJoinedDrawerOpen, setIsJoinedDrawerOpen] = useState(false);
+  const [isEventsOpen, setIsEventsOpen] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -191,12 +193,13 @@ export default function App() {
   if (isLoadingSession) return <main className="loading-page">Loading your campus community...</main>;
   if (roleError && session) return <main className="loading-page">{roleError}</main>;
   if (!session) return <LoginPage />;
-  if (userRole === 'admin') return <AdminDashboard onSignOut={() => supabase.auth.signOut()} />;
+  if (userRole === 'admin') return <AdminDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
   if (userRole === 'club_lead') return <ClubLeadDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
+  if (isEventsOpen) return <><Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(false)} onSignOut={() => supabase.auth.signOut()} /><EventsPage session={session} userRole={userRole} onClose={() => setIsEventsOpen(false)} /></>;
 
   return (
     <>
-      <Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onSignOut={() => supabase.auth.signOut()} />
+      <Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(true)} onSignOut={() => supabase.auth.signOut()} />
       <main>
         <section className="hero-section">
           <div className="hero-copy">

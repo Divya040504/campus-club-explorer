@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { EventsPage } from './EventsPage';
 
-export function AdminDashboard({ onSignOut }) {
+export function AdminDashboard({ session, onSignOut }) {
   const [profiles, setProfiles] = useState([]);
   const [clubs, setClubs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -128,6 +129,7 @@ export function AdminDashboard({ onSignOut }) {
             </section>
           </>
         )}
+        <EventsPage session={session} userRole="admin" />
       </main>
     </>
   );
