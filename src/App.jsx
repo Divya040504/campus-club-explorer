@@ -16,6 +16,7 @@ export default function App() {
   const [clubs, setClubs] = useState([]);
   const [isLoadingClubs, setIsLoadingClubs] = useState(false);
   const [clubsError, setClubsError] = useState('');
+  const [roleError, setRoleError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [joinedClubIds, setJoinedClubIds] = useState([]);
@@ -44,6 +45,30 @@ export default function App() {
 
     return () => authListener.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!session || !supabase) return;
+
+    async function verifyPortalRole() {
+      const selectedPortal = sessionStorage.getItem('campus-club-portal') || 'student';
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      if (error) {
+        setRoleError(`We could not verify your account role: ${error.message}`);
+      } else if (data.role !== selectedPortal) {
+        setRoleError(`This account is registered as ${data.role.replace('_', ' ')}, not ${selectedPortal.replace('_', ' ')}. Choose the correct portal and sign in again.`);
+        await supabase.auth.signOut();
+      } else {
+        setRoleError('');
+      }
+    }
+
+    verifyPortalRole();
+  }, [session]);
 
   useEffect(() => {
     if (!session || !supabase) return;
@@ -160,6 +185,7 @@ export default function App() {
   }
 
   if (isLoadingSession) return <main className="loading-page">Loading your campus community...</main>;
+  if (roleError && session) return <main className="loading-page">{roleError}</main>;
   if (!session) return <LoginPage />;
 
   return (

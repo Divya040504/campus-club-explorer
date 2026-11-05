@@ -3,6 +3,7 @@ import { isSupabaseConfigured, supabase, supabaseConfigError } from '../lib/supa
 
 export function LoginPage() {
   const [isRegistering, setIsRegistering] = useState(false);
+  const [selectedPortal, setSelectedPortal] = useState('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -21,6 +22,7 @@ export function LoginPage() {
     }
 
     setIsSubmitting(true);
+    sessionStorage.setItem('campus-club-portal', selectedPortal);
     const result = isRegistering
       ? await supabase.auth.signUp({
           email,
@@ -56,6 +58,24 @@ export function LoginPage() {
             : 'Sign in to discover clubs, events, and your membership requests.'}
         </p>
 
+        {!isRegistering && (
+          <fieldset className="portal-selector">
+            <legend>Sign in as</legend>
+            <div className="portal-options">
+              {[
+                ['student', 'Student'],
+                ['club_lead', 'Club lead'],
+                ['admin', 'Administrator'],
+              ].map(([value, label]) => (
+                <label className={selectedPortal === value ? 'portal-option selected' : 'portal-option'} key={value}>
+                  <input type="radio" name="portal" value={value} checked={selectedPortal === value} onChange={(event) => setSelectedPortal(event.target.value)} />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+
         <form className="auth-form" onSubmit={handleSubmit}>
           {isRegistering && (
             <label>
@@ -78,7 +98,7 @@ export function LoginPage() {
           </button>
         </form>
 
-        <button className="auth-switch" type="button" onClick={() => { setIsRegistering(!isRegistering); setError(''); setMessage(''); }}>
+        <button className="auth-switch" type="button" onClick={() => { setIsRegistering(!isRegistering); setSelectedPortal('student'); setError(''); setMessage(''); }}>
           {isRegistering ? 'Already have an account? Sign in' : 'New student? Create an account'}
         </button>
       </section>

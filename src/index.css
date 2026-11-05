@@ -52,6 +52,12 @@ a { color: inherit; }
 .form-message { font-size: .85rem; line-height: 1.45; margin: 0; }
 .error-message { color: #b54938; }
 .success-message { color: var(--teal-dark); }
+.portal-selector { border: 0; margin: 0 0 22px; padding: 0; }
+.portal-selector legend { color: var(--ink); font-size: .85rem; font-weight: 700; margin-bottom: 8px; padding: 0; }
+.portal-options { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); }
+.portal-option { align-items: center; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); cursor: pointer; display: flex; font-size: .78rem; justify-content: center; min-height: 42px; padding: 7px; text-align: center; }
+.portal-option input { position: absolute; opacity: 0; }
+.portal-option.selected { background: #e2f0e9; border-color: var(--teal); color: var(--teal-dark); font-weight: 700; }
 
 .hero-section { background: var(--teal); color: white; display: flex; justify-content: space-between; min-height: 290px; overflow: hidden; padding: 64px max(9vw, 24px); position: relative; }
 .hero-copy { max-width: 660px; position: relative; z-index: 1; }
@@ -134,6 +140,7 @@ a { color: inherit; }
   .joined-button { font-size: .78rem; padding: 8px 10px; }
   .sign-out-button { font-size: .75rem; }
   .auth-card { padding: 30px 24px; }
+  .portal-options { grid-template-columns: 1fr; }
   .hero-section { min-height: 310px; padding: 52px 24px; }
   .hero-shape { height: 105px; margin: 135px -60px 0 0; width: 105px; }
   .hero-section p:last-child { font-size: 1rem; }
