@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
 import { CategoryFilter } from './components/CategoryFilter';
 import { AdminDashboard } from './components/AdminDashboard';
+import { ClubLeadDashboard } from './components/ClubLeadDashboard';
 import { ClubDetailsModal } from './components/ClubDetailsModal';
 import { ClubGrid } from './components/ClubGrid';
 import { JoinedDrawer } from './components/JoinedDrawer';
@@ -191,6 +192,7 @@ export default function App() {
   if (roleError && session) return <main className="loading-page">{roleError}</main>;
   if (!session) return <LoginPage />;
   if (userRole === 'admin') return <AdminDashboard onSignOut={() => supabase.auth.signOut()} />;
+  if (userRole === 'club_lead') return <ClubLeadDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
 
   return (
     <>

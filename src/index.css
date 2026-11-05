@@ -111,6 +111,12 @@ a { color: inherit; }
 .admin-row > div { display: grid; gap: 5px; min-width: 0; }
 .admin-row span { color: var(--muted); font-size: .72rem; overflow: hidden; text-overflow: ellipsis; }
 .admin-row select { background: white; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); min-width: 170px; padding: 9px; }
+.assigned-clubs { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.assigned-club { background: #eef3ed; border-left: 3px solid var(--teal); display: grid; gap: 6px; padding: 14px; }
+.assigned-club span { color: var(--muted); font-size: .8rem; }
+.request-row { align-items: start; }
+.request-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.request-actions .join-button, .request-actions .details-button { font-size: .78rem; padding: 8px 10px; }
 .request-status { font-size: .72rem; font-weight: 700; text-transform: capitalize; }
 .request-status.pending { color: #a26b00; }
 .request-status.approved { color: var(--teal); }
