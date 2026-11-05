@@ -1,6 +1,4 @@
-import { categories } from '../data/clubs';
-
-export function CategoryFilter({ activeCategory, onCategoryChange }) {
+export function CategoryFilter({ categories, activeCategory, onCategoryChange }) {
   return (
     <div className="category-filter" aria-label="Filter clubs by vertical">
       {categories.map((category) => (

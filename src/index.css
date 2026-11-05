@@ -91,6 +91,7 @@ a { color: inherit; }
 .join-button:hover { background: var(--teal-dark); border-color: var(--teal-dark); }
 .join-button.joined:hover { background: #e9b93d; border-color: #e9b93d; }
 .empty-state { background: var(--card); border: 1px dashed #bcc6c0; color: var(--muted); padding: 32px; text-align: center; }
+.loading-state { color: var(--muted); padding: 32px 0; }
 
 .modal-backdrop, .drawer-backdrop { align-items: center; background: #17242499; display: flex; inset: 0; justify-content: center; padding: 20px; position: fixed; z-index: 10; }
 .details-modal { background: var(--card); border-radius: 8px; max-width: 520px; padding: 34px; position: relative; width: 100%; }

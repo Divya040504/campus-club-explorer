@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { categories, clubs } from './data/clubs';
 import { supabase } from './lib/supabase';
 import { CategoryFilter } from './components/CategoryFilter';
 import { ClubDetailsModal } from './components/ClubDetailsModal';
@@ -12,6 +11,9 @@ import { SearchBar } from './components/SearchBar';
 export default function App() {
   const [session, setSession] = useState(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [clubs, setClubs] = useState([]);
+  const [isLoadingClubs, setIsLoadingClubs] = useState(false);
+  const [clubsError, setClubsError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [joinedClubIds, setJoinedClubIds] = useState([]);
@@ -36,6 +38,38 @@ export default function App() {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!session || !supabase) return;
+
+    async function loadClubs() {
+      setIsLoadingClubs(true);
+      setClubsError('');
+
+      const { data, error } = await supabase
+        .from('clubs')
+        .select('id, name, category, venue, short_description, full_description, contact_email')
+        .order('name');
+
+      if (error) {
+        setClubsError(`We could not load clubs from Supabase: ${error.message}`);
+      } else {
+        setClubs(data.map((club) => ({
+          id: club.id,
+          name: club.name,
+          category: club.category,
+          venue: club.venue,
+          shortDesc: club.short_description,
+          fullDesc: club.full_description,
+          contact: club.contact_email,
+        })));
+      }
+
+      setIsLoadingClubs(false);
+    }
+
+    loadClubs();
+  }, [session]);
+
   const filteredClubs = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
@@ -54,6 +88,7 @@ export default function App() {
     ));
   }
 
+  const categories = ['All', ...new Set(clubs.map((club) => club.category))];
   const joinedClubs = clubs.filter((club) => joinedClubIds.includes(club.id));
 
   if (isLoadingSession) return <main className="loading-page">Loading your campus community...</main>;
@@ -81,8 +116,12 @@ export default function App() {
             <span className="result-count">{filteredClubs.length} clubs</span>
           </div>
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
-          <CategoryFilter activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
-          <ClubGrid clubs={filteredClubs} joinedClubIds={joinedClubIds} onJoin={toggleJoinedClub} onViewDetails={setActiveClub} />
+          <CategoryFilter categories={categories} activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+          {isLoadingClubs && <p className="loading-state">Loading clubs...</p>}
+          {clubsError && <p className="form-message error-message" role="alert">{clubsError}</p>}
+          {!isLoadingClubs && !clubsError && (
+            <ClubGrid clubs={filteredClubs} joinedClubIds={joinedClubIds} onJoin={toggleJoinedClub} onViewDetails={setActiveClub} />
+          )}
         </section>
       </main>
 
