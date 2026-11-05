@@ -45,3 +45,5 @@ The migration uses `btree_gist` and a PostgreSQL exclusion constraint to reject 
 The starter club records are in [supabase/migrations/20261105192000_seed_clubs.sql](./supabase/migrations/20261105192000_seed_clubs.sql). Run this migration after the initial schema migration to populate the `clubs` table.
 
 If Supabase reports `permission denied for table clubs`, run [supabase/migrations/20261105194000_grant_app_access.sql](./supabase/migrations/20261105194000_grant_app_access.sql) in the SQL Editor while signed-in users are present in the app.
+
+The administrator dashboard also requires [supabase/migrations/20261105215000_grant_admin_updates.sql](./supabase/migrations/20261105215000_grant_admin_updates.sql) so authenticated requests can reach the existing admin-only update policies for profiles and clubs.
