@@ -60,10 +60,12 @@ export default function App() {
         .from('profiles')
         .select('role')
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         setRoleError(`We could not verify your account role: ${error.message}`);
+      } else if (!data) {
+        setRoleError('Your account profile is missing. Run the existing-profile backfill migration in Supabase SQL Editor, then sign in again.');
       } else if (data.role !== selectedPortal) {
         setRoleError(`This account is registered as ${data.role.replace('_', ' ')}, not ${selectedPortal.replace('_', ' ')}. Choose the correct portal and sign in again.`);
         await supabase.auth.signOut();
