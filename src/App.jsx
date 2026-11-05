@@ -1,11 +1,40 @@
-const { useMemo, useState } = React;
+import { useEffect, useMemo, useState } from 'react';
+import { categories, clubs } from './data/clubs';
+import { supabase } from './lib/supabase';
+import { CategoryFilter } from './components/CategoryFilter';
+import { ClubDetailsModal } from './components/ClubDetailsModal';
+import { ClubGrid } from './components/ClubGrid';
+import { JoinedDrawer } from './components/JoinedDrawer';
+import { LoginPage } from './components/LoginPage';
+import { Navbar } from './components/Navbar';
+import { SearchBar } from './components/SearchBar';
 
-function App() {
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [joinedClubIds, setJoinedClubIds] = useState([]);
   const [activeClub, setActiveClub] = useState(null);
   const [isJoinedDrawerOpen, setIsJoinedDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!supabase) {
+      setIsLoadingSession(false);
+      return undefined;
+    }
+
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setIsLoadingSession(false);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+    });
+
+    return () => authListener.subscription.unsubscribe();
+  }, []);
 
   const filteredClubs = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -27,9 +56,12 @@ function App() {
 
   const joinedClubs = clubs.filter((club) => joinedClubIds.includes(club.id));
 
+  if (isLoadingSession) return <main className="loading-page">Loading your campus community...</main>;
+  if (!session) return <LoginPage />;
+
   return (
     <>
-      <Navbar joinedCount={joinedClubIds.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} />
+      <Navbar joinedCount={joinedClubIds.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onSignOut={() => supabase.auth.signOut()} />
       <main>
         <section className="hero-section">
           <div className="hero-copy">
@@ -60,4 +92,3 @@ function App() {
     </>
   );
 }
-

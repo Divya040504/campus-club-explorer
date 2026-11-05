@@ -1,4 +1,4 @@
-function ClubDetailsModal({ club, onClose }) {
+export function ClubDetailsModal({ club, onClose }) {
   if (!club) return null;
 
   return (
@@ -17,4 +17,3 @@ function ClubDetailsModal({ club, onClose }) {
     </div>
   );
 }
-

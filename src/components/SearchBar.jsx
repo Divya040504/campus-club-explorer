@@ -1,4 +1,4 @@
-function SearchBar({ value, onChange }) {
+export function SearchBar({ value, onChange }) {
   return (
     <label className="search-field">
       <span className="search-icon" aria-hidden="true">⌕</span>
@@ -12,4 +12,3 @@ function SearchBar({ value, onChange }) {
     </label>
   );
 }
-

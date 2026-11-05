@@ -1,4 +1,4 @@
-function ClubCard({ club, isJoined, onJoin, onViewDetails }) {
+export function ClubCard({ club, isJoined, onJoin, onViewDetails }) {
   return (
     <article className="club-card">
       <div className="card-topline">
@@ -19,4 +19,3 @@ function ClubCard({ club, isJoined, onJoin, onViewDetails }) {
     </article>
   );
 }
-

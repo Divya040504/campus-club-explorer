@@ -1,4 +1,4 @@
-const clubs = [
+export const clubs = [
   {
     id: 1,
     name: 'Dance',
@@ -136,10 +136,9 @@ const clubs = [
   },
 ];
 
-const categories = [
+export const categories = [
   'All',
   'Performing Arts, Visual Arts & Crafts',
   'Literature & Media',
   'Inclusive',
 ];
-

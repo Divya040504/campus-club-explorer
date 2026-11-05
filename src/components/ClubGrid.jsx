@@ -1,4 +1,6 @@
-function ClubGrid({ clubs, joinedClubIds, onJoin, onViewDetails }) {
+import { ClubCard } from './ClubCard';
+
+export function ClubGrid({ clubs, joinedClubIds, onJoin, onViewDetails }) {
   if (clubs.length === 0) {
     return <p className="empty-state">No clubs match your search. Try another name or vertical.</p>;
   }
@@ -17,4 +19,3 @@ function ClubGrid({ clubs, joinedClubIds, onJoin, onViewDetails }) {
     </div>
   );
 }
-
