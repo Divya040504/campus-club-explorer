@@ -36,6 +36,8 @@ Campus Club Explorer is a web application designed to help students discover, ex
 
 The current first phase provides Supabase email/password registration, login, session persistence, and sign out. The database foundation for club requests, help desk contacts, roles, and event scheduling is included in the migration; the matching student and staff screens will be added next.
 
+The core MVP now includes database-backed events. Students can browse the event calendar, club leads can create events for assigned clubs, and administrators can create or delete events. Supabase rejects overlapping events for the same venue and time range. Students also have direct email links for club contacts and general help desk support.
+
 ## Supabase database
 
 The database schema is stored in [supabase/migrations/20261105170000_initial_schema.sql](./supabase/migrations/20261105170000_initial_schema.sql). After creating the Supabase project, open **SQL Editor**, paste the migration contents, and run it. This creates profiles, clubs, membership requests, help desk messages, events, role helpers, Row Level Security policies, and a database-level venue conflict constraint.
