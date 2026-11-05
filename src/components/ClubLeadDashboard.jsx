@@ -32,7 +32,7 @@ export function ClubLeadDashboard({ session, onSignOut }) {
 
     const { data: requestData, error: requestsError } = await supabase
       .from('membership_requests')
-      .select('id, club_id, student_id, message, status, created_at, profiles(full_name), clubs(name)')
+      .select('id, club_id, student_id, message, status, created_at, student:profiles!membership_requests_student_id_fkey(full_name), clubs(name)')
       .in('club_id', clubData.map((club) => club.id))
       .order('created_at', { ascending: false });
 
@@ -115,7 +115,7 @@ export function ClubLeadDashboard({ session, onSignOut }) {
                   {requests.map((request) => (
                     <div className="admin-row request-row" key={request.id}>
                       <div>
-                        <strong>{request.profiles?.full_name || 'Student'}</strong>
+                        <strong>{request.student?.full_name || 'Student'}</strong>
                         <span>{request.clubs?.name} · {request.message || 'No message provided'}</span>
                         <span>{new Date(request.created_at).toLocaleString()}</span>
                       </div>
