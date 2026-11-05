@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { isSupabaseConfigured, supabase, supabaseConfigError } from '../lib/supabase';
 
 export function LoginPage() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -16,7 +16,7 @@ export function LoginPage() {
     setMessage('');
 
     if (!isSupabaseConfigured || !supabase) {
-      setError('Supabase is not configured. Add the values from your Supabase project to .env.local and restart the app.');
+      setError(supabaseConfigError || 'Supabase is not configured. Check the values in .env.local and restart the app.');
       return;
     }
 
