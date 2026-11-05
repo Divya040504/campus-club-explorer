@@ -117,8 +117,13 @@ a { color: inherit; }
 .request-row { align-items: start; }
 .request-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .request-actions .join-button, .request-actions .details-button { font-size: .78rem; padding: 8px 10px; }
-.help-link { color: var(--teal-dark); font-size: .82rem; font-weight: 700; text-decoration: none; }
+.help-link { background: transparent; border: 0; color: var(--teal-dark); font-size: .82rem; font-weight: 700; padding: 9px 5px; }
 .help-link:hover { text-decoration: underline; }
+.help-desk-intro { color: var(--muted); line-height: 1.5; margin: 18px 0 22px; }
+.help-contact-list { display: grid; gap: 10px; max-height: 360px; overflow-y: auto; }
+.help-contact { background: #eef3ed; border-left: 3px solid var(--teal); display: grid; gap: 4px; padding: 12px 14px; text-decoration: none; }
+.help-contact:hover { background: #e2f0e9; }
+.help-contact span { color: var(--teal-dark); font-size: .82rem; overflow-wrap: anywhere; }
 .events-page { margin: 0 auto; max-width: 1100px; padding: 54px max(5vw, 24px) 90px; }
 .events-heading-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; }
 .event-form { margin-bottom: 28px; }

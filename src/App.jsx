@@ -4,6 +4,7 @@ import { CategoryFilter } from './components/CategoryFilter';
 import { AdminDashboard } from './components/AdminDashboard';
 import { ClubLeadDashboard } from './components/ClubLeadDashboard';
 import { EventsPage } from './components/EventsPage';
+import { HelpDeskModal } from './components/HelpDeskModal';
 import { ClubDetailsModal } from './components/ClubDetailsModal';
 import { ClubGrid } from './components/ClubGrid';
 import { JoinedDrawer } from './components/JoinedDrawer';
@@ -32,6 +33,7 @@ export default function App() {
   const [activeClub, setActiveClub] = useState(null);
   const [isJoinedDrawerOpen, setIsJoinedDrawerOpen] = useState(false);
   const [isEventsOpen, setIsEventsOpen] = useState(false);
+  const [isHelpDeskOpen, setIsHelpDeskOpen] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -197,11 +199,11 @@ export default function App() {
   if (!session) return <LoginPage />;
   if (userRole === 'admin') return <AdminDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
   if (userRole === 'club_lead') return <ClubLeadDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
-  if (isEventsOpen) return <><Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(false)} onSignOut={() => supabase.auth.signOut()} /><EventsPage session={session} userRole={userRole} onClose={() => setIsEventsOpen(false)} /></>;
+  if (isEventsOpen) return <><Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(false)} onOpenHelpDesk={() => setIsHelpDeskOpen(true)} onSignOut={() => supabase.auth.signOut()} /><EventsPage session={session} userRole={userRole} onClose={() => setIsEventsOpen(false)} />{isHelpDeskOpen && <HelpDeskModal clubs={clubs} onClose={() => setIsHelpDeskOpen(false)} />}</>;
 
   return (
     <>
-      <Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(true)} onSignOut={() => supabase.auth.signOut()} />
+      <Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(true)} onOpenHelpDesk={() => setIsHelpDeskOpen(true)} onSignOut={() => supabase.auth.signOut()} />
       <main>
         <section className="hero-section">
           <div className="hero-copy">
@@ -235,6 +237,7 @@ export default function App() {
       {isJoinedDrawerOpen && <JoinedDrawer clubs={joinedClubs} onClose={() => setIsJoinedDrawerOpen(false)} />}
       {isRequestsDrawerOpen && <RequestsDrawer requests={requests} onClose={() => setIsRequestsDrawerOpen(false)} />}
       {requestClub && <MembershipRequestModal club={requestClub} onClose={() => setRequestClub(null)} onSubmit={submitMembershipRequest} isSubmitting={isSubmittingRequest} error={requestError} />}
+      {isHelpDeskOpen && <HelpDeskModal clubs={clubs} onClose={() => setIsHelpDeskOpen(false)} />}
     </>
   );
 }

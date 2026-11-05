@@ -1,4 +1,4 @@
-export function Navbar({ joinedCount, requestCount, onOpenJoined, onOpenRequests, onOpenEvents, onSignOut }) {
+export function Navbar({ joinedCount, requestCount, onOpenJoined, onOpenRequests, onOpenEvents, onOpenHelpDesk, onSignOut }) {
   return (
     <header className="navbar">
       <a className="brand" href="/" aria-label="Campus Club Explorer home">
@@ -7,7 +7,7 @@ export function Navbar({ joinedCount, requestCount, onOpenJoined, onOpenRequests
       </a>
       <div className="navbar-actions">
         <button className="joined-button" type="button" onClick={onOpenEvents}>Events</button>
-        <a className="help-link" href="mailto:student-support@campus.edu">Help desk</a>
+        <button className="help-link" type="button" onClick={onOpenHelpDesk}>Help desk</button>
         <button className="joined-button" type="button" onClick={onOpenRequests}>
           My requests <span>{requestCount}</span>
         </button>
