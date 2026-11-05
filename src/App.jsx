@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from './lib/supabase';
 import { CategoryFilter } from './components/CategoryFilter';
+import { AdminDashboard } from './components/AdminDashboard';
 import { ClubDetailsModal } from './components/ClubDetailsModal';
 import { ClubGrid } from './components/ClubGrid';
 import { JoinedDrawer } from './components/JoinedDrawer';
@@ -17,6 +18,7 @@ export default function App() {
   const [isLoadingClubs, setIsLoadingClubs] = useState(false);
   const [clubsError, setClubsError] = useState('');
   const [roleError, setRoleError] = useState('');
+  const [userRole, setUserRole] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [joinedClubIds, setJoinedClubIds] = useState([]);
@@ -63,6 +65,7 @@ export default function App() {
         setRoleError(`This account is registered as ${data.role.replace('_', ' ')}, not ${selectedPortal.replace('_', ' ')}. Choose the correct portal and sign in again.`);
         await supabase.auth.signOut();
       } else {
+        setUserRole(data.role);
         setRoleError('');
       }
     }
@@ -187,6 +190,7 @@ export default function App() {
   if (isLoadingSession) return <main className="loading-page">Loading your campus community...</main>;
   if (roleError && session) return <main className="loading-page">{roleError}</main>;
   if (!session) return <LoginPage />;
+  if (userRole === 'admin') return <AdminDashboard onSignOut={() => supabase.auth.signOut()} />;
 
   return (
     <>
