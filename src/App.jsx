@@ -155,8 +155,12 @@ export default function App() {
   }
 
   const categories = ['All', ...new Set(clubs.map((club) => club.category))];
-  const joinedClubs = clubs.filter((club) => joinedClubIds.includes(club.id));
   const requestStatuses = Object.fromEntries(requests.map((request) => [request.clubId, request.status]));
+  const approvedClubIds = requests
+    .filter((request) => request.status === 'approved')
+    .map((request) => request.clubId);
+  const joinedClubIdsWithApprovals = [...new Set([...joinedClubIds, ...approvedClubIds])];
+  const joinedClubs = clubs.filter((club) => joinedClubIdsWithApprovals.includes(club.id));
 
   function openRequestModal(club) {
     setRequestError('');
@@ -203,7 +207,7 @@ export default function App() {
 
   return (
     <>
-      <Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(true)} onOpenHelpDesk={() => setIsHelpDeskOpen(true)} onSignOut={() => supabase.auth.signOut()} />
+      <Navbar joinedCount={joinedClubs.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(true)} onOpenHelpDesk={() => setIsHelpDeskOpen(true)} onSignOut={() => supabase.auth.signOut()} />
       <main>
         <section className="hero-section">
           <div className="hero-copy">
