@@ -1,4 +1,4 @@
-function JoinedDrawer({ clubs, onClose }) {
+export function JoinedDrawer({ clubs, onClose }) {
   return (
     <div className="drawer-backdrop" role="presentation" onClick={onClose}>
       <aside className="joined-drawer" role="dialog" aria-modal="true" aria-labelledby="joined-title" onClick={(event) => event.stopPropagation()}>
@@ -18,4 +18,3 @@ function JoinedDrawer({ clubs, onClose }) {
     </div>
   );
 }
-

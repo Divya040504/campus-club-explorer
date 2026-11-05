@@ -1,11 +1,140 @@
-const { useMemo, useState } = React;
+import { useEffect, useMemo, useState } from 'react';
+import { supabase } from './lib/supabase';
+import { CategoryFilter } from './components/CategoryFilter';
+import { AdminDashboard } from './components/AdminDashboard';
+import { ClubLeadDashboard } from './components/ClubLeadDashboard';
+import { EventsPage } from './components/EventsPage';
+import { HelpDeskModal } from './components/HelpDeskModal';
+import { ClubDetailsModal } from './components/ClubDetailsModal';
+import { ClubGrid } from './components/ClubGrid';
+import { JoinedDrawer } from './components/JoinedDrawer';
+import { LoginPage } from './components/LoginPage';
+import { MembershipRequestModal } from './components/MembershipRequestModal';
+import { Navbar } from './components/Navbar';
+import { RequestsDrawer } from './components/RequestsDrawer';
+import { SearchBar } from './components/SearchBar';
 
-function App() {
+export default function App() {
+  const [session, setSession] = useState(null);
+  const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [clubs, setClubs] = useState([]);
+  const [isLoadingClubs, setIsLoadingClubs] = useState(false);
+  const [clubsError, setClubsError] = useState('');
+  const [roleError, setRoleError] = useState('');
+  const [userRole, setUserRole] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [joinedClubIds, setJoinedClubIds] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [requestClub, setRequestClub] = useState(null);
+  const [isRequestsDrawerOpen, setIsRequestsDrawerOpen] = useState(false);
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  const [requestError, setRequestError] = useState('');
   const [activeClub, setActiveClub] = useState(null);
   const [isJoinedDrawerOpen, setIsJoinedDrawerOpen] = useState(false);
+  const [isEventsOpen, setIsEventsOpen] = useState(false);
+  const [isHelpDeskOpen, setIsHelpDeskOpen] = useState(false);
+
+  useEffect(() => {
+    if (!supabase) {
+      setIsLoadingSession(false);
+      return undefined;
+    }
+
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setIsLoadingSession(false);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+    });
+
+    return () => authListener.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!session || !supabase) return;
+
+    async function verifyPortalRole() {
+      const selectedPortal = sessionStorage.getItem('campus-club-portal') || 'student';
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        setRoleError(`We could not verify your account role: ${error.message}`);
+      } else if (!data) {
+        setRoleError('Your account profile is missing. Run the existing-profile backfill migration in Supabase SQL Editor, then sign in again.');
+      } else if (data.role !== selectedPortal) {
+        setRoleError(`This account is registered as ${data.role.replace('_', ' ')}, not ${selectedPortal.replace('_', ' ')}. Choose the correct portal and sign in again.`);
+        await supabase.auth.signOut();
+      } else {
+        setUserRole(data.role);
+        setRoleError('');
+      }
+    }
+
+    verifyPortalRole();
+  }, [session]);
+
+  useEffect(() => {
+    if (!session || !supabase) return;
+
+    async function loadClubs() {
+      setIsLoadingClubs(true);
+      setClubsError('');
+
+      const { data, error } = await supabase
+        .from('clubs')
+        .select('id, name, category, venue, short_description, full_description, contact_email')
+        .order('name');
+
+      if (error) {
+        setClubsError(`We could not load clubs from Supabase: ${error.message}`);
+      } else {
+        setClubs(data.map((club) => ({
+          id: club.id,
+          name: club.name,
+          category: club.category,
+          venue: club.venue,
+          shortDesc: club.short_description,
+          fullDesc: club.full_description,
+          contact: club.contact_email,
+        })));
+      }
+
+      setIsLoadingClubs(false);
+    }
+
+    loadClubs();
+  }, [session]);
+
+  useEffect(() => {
+    if (!session || !supabase) return;
+
+    async function loadRequests() {
+      const { data, error } = await supabase
+        .from('membership_requests')
+        .select('id, club_id, status, message, clubs(name)')
+        .eq('student_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (!error) {
+        setRequests(data.map((request) => ({
+          id: request.id,
+          clubId: request.club_id,
+          clubName: request.clubs.name,
+          status: request.status,
+          message: request.message,
+        })));
+      }
+    }
+
+    loadRequests();
+  }, [session]);
 
   const filteredClubs = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -25,11 +154,56 @@ function App() {
     ));
   }
 
+  const categories = ['All', ...new Set(clubs.map((club) => club.category))];
   const joinedClubs = clubs.filter((club) => joinedClubIds.includes(club.id));
+  const requestStatuses = Object.fromEntries(requests.map((request) => [request.clubId, request.status]));
+
+  function openRequestModal(club) {
+    setRequestError('');
+    setRequestClub(club);
+    setActiveClub(null);
+  }
+
+  async function submitMembershipRequest(message) {
+    if (!requestClub || !supabase) return;
+
+    setIsSubmittingRequest(true);
+    setRequestError('');
+    const { data, error } = await supabase
+      .from('membership_requests')
+      .insert({
+        club_id: requestClub.id,
+        student_id: session.user.id,
+        message,
+      })
+      .select('id, club_id, status, message, clubs(name)')
+      .single();
+
+    if (error) {
+      setRequestError(error.code === '23505' ? 'You already have a request for this club.' : error.message);
+    } else {
+      setRequests((currentRequests) => [{
+        id: data.id,
+        clubId: data.club_id,
+        clubName: data.clubs.name,
+        status: data.status,
+        message: data.message,
+      }, ...currentRequests]);
+      setRequestClub(null);
+    }
+    setIsSubmittingRequest(false);
+  }
+
+  if (isLoadingSession) return <main className="loading-page">Loading your campus community...</main>;
+  if (roleError && session) return <main className="loading-page">{roleError}</main>;
+  if (!session) return <LoginPage />;
+  if (userRole === 'admin') return <AdminDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
+  if (userRole === 'club_lead') return <ClubLeadDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
+  if (isEventsOpen) return <><Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(false)} onOpenHelpDesk={() => setIsHelpDeskOpen(true)} onSignOut={() => supabase.auth.signOut()} /><EventsPage session={session} userRole={userRole} onClose={() => setIsEventsOpen(false)} />{isHelpDeskOpen && <HelpDeskModal clubs={clubs} onClose={() => setIsHelpDeskOpen(false)} />}</>;
 
   return (
     <>
-      <Navbar joinedCount={joinedClubIds.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} />
+      <Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(true)} onOpenHelpDesk={() => setIsHelpDeskOpen(true)} onSignOut={() => supabase.auth.signOut()} />
       <main>
         <section className="hero-section">
           <div className="hero-copy">
@@ -49,15 +223,21 @@ function App() {
             <span className="result-count">{filteredClubs.length} clubs</span>
           </div>
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
-          <CategoryFilter activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
-          <ClubGrid clubs={filteredClubs} joinedClubIds={joinedClubIds} onJoin={toggleJoinedClub} onViewDetails={setActiveClub} />
+          <CategoryFilter categories={categories} activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+          {isLoadingClubs && <p className="loading-state">Loading clubs...</p>}
+          {clubsError && <p className="form-message error-message" role="alert">{clubsError}</p>}
+          {!isLoadingClubs && !clubsError && (
+            <ClubGrid clubs={filteredClubs} requestStatuses={requestStatuses} onRequest={openRequestModal} onViewDetails={setActiveClub} />
+          )}
         </section>
       </main>
 
-      {activeClub && <ClubDetailsModal club={activeClub} onClose={() => setActiveClub(null)} />}
+      {activeClub && <ClubDetailsModal club={activeClub} requestStatus={requestStatuses[activeClub.id]} onRequest={openRequestModal} onClose={() => setActiveClub(null)} />}
 
       {isJoinedDrawerOpen && <JoinedDrawer clubs={joinedClubs} onClose={() => setIsJoinedDrawerOpen(false)} />}
+      {isRequestsDrawerOpen && <RequestsDrawer requests={requests} onClose={() => setIsRequestsDrawerOpen(false)} />}
+      {requestClub && <MembershipRequestModal club={requestClub} onClose={() => setRequestClub(null)} onSubmit={submitMembershipRequest} isSubmitting={isSubmittingRequest} error={requestError} />}
+      {isHelpDeskOpen && <HelpDeskModal clubs={clubs} onClose={() => setIsHelpDeskOpen(false)} />}
     </>
   );
 }
-
