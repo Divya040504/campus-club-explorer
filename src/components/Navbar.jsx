@@ -1,4 +1,4 @@
-export function Navbar({ joinedCount, onOpenJoined, onSignOut }) {
+export function Navbar({ joinedCount, requestCount, onOpenJoined, onOpenRequests, onSignOut }) {
   return (
     <header className="navbar">
       <a className="brand" href="/" aria-label="Campus Club Explorer home">
@@ -6,6 +6,9 @@ export function Navbar({ joinedCount, onOpenJoined, onSignOut }) {
         <span>Campus Club Explorer</span>
       </a>
       <div className="navbar-actions">
+        <button className="joined-button" type="button" onClick={onOpenRequests}>
+          My requests <span>{requestCount}</span>
+        </button>
         <button className="joined-button" type="button" onClick={onOpenJoined}>
           Joined clubs <span>{joinedCount}</span>
         </button>

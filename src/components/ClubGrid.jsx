@@ -1,6 +1,6 @@
 import { ClubCard } from './ClubCard';
 
-export function ClubGrid({ clubs, joinedClubIds, onJoin, onViewDetails }) {
+export function ClubGrid({ clubs, requestStatuses, onRequest, onViewDetails }) {
   if (clubs.length === 0) {
     return <p className="empty-state">No clubs match your search. Try another name or vertical.</p>;
   }
@@ -11,8 +11,8 @@ export function ClubGrid({ clubs, joinedClubIds, onJoin, onViewDetails }) {
         <ClubCard
           key={club.id}
           club={club}
-          isJoined={joinedClubIds.includes(club.id)}
-          onJoin={onJoin}
+          requestStatus={requestStatuses[club.id]}
+          onRequest={onRequest}
           onViewDetails={onViewDetails}
         />
       ))}

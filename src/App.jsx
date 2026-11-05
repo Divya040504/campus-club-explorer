@@ -5,7 +5,9 @@ import { ClubDetailsModal } from './components/ClubDetailsModal';
 import { ClubGrid } from './components/ClubGrid';
 import { JoinedDrawer } from './components/JoinedDrawer';
 import { LoginPage } from './components/LoginPage';
+import { MembershipRequestModal } from './components/MembershipRequestModal';
 import { Navbar } from './components/Navbar';
+import { RequestsDrawer } from './components/RequestsDrawer';
 import { SearchBar } from './components/SearchBar';
 
 export default function App() {
@@ -17,6 +19,11 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [joinedClubIds, setJoinedClubIds] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [requestClub, setRequestClub] = useState(null);
+  const [isRequestsDrawerOpen, setIsRequestsDrawerOpen] = useState(false);
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+  const [requestError, setRequestError] = useState('');
   const [activeClub, setActiveClub] = useState(null);
   const [isJoinedDrawerOpen, setIsJoinedDrawerOpen] = useState(false);
 
@@ -70,6 +77,30 @@ export default function App() {
     loadClubs();
   }, [session]);
 
+  useEffect(() => {
+    if (!session || !supabase) return;
+
+    async function loadRequests() {
+      const { data, error } = await supabase
+        .from('membership_requests')
+        .select('id, club_id, status, message, clubs(name)')
+        .eq('student_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (!error) {
+        setRequests(data.map((request) => ({
+          id: request.id,
+          clubId: request.club_id,
+          clubName: request.clubs.name,
+          status: request.status,
+          message: request.message,
+        })));
+      }
+    }
+
+    loadRequests();
+  }, [session]);
+
   const filteredClubs = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
@@ -90,13 +121,50 @@ export default function App() {
 
   const categories = ['All', ...new Set(clubs.map((club) => club.category))];
   const joinedClubs = clubs.filter((club) => joinedClubIds.includes(club.id));
+  const requestStatuses = Object.fromEntries(requests.map((request) => [request.clubId, request.status]));
+
+  function openRequestModal(club) {
+    setRequestError('');
+    setRequestClub(club);
+    setActiveClub(null);
+  }
+
+  async function submitMembershipRequest(message) {
+    if (!requestClub || !supabase) return;
+
+    setIsSubmittingRequest(true);
+    setRequestError('');
+    const { data, error } = await supabase
+      .from('membership_requests')
+      .insert({
+        club_id: requestClub.id,
+        student_id: session.user.id,
+        message,
+      })
+      .select('id, club_id, status, message, clubs(name)')
+      .single();
+
+    if (error) {
+      setRequestError(error.code === '23505' ? 'You already have a request for this club.' : error.message);
+    } else {
+      setRequests((currentRequests) => [{
+        id: data.id,
+        clubId: data.club_id,
+        clubName: data.clubs.name,
+        status: data.status,
+        message: data.message,
+      }, ...currentRequests]);
+      setRequestClub(null);
+    }
+    setIsSubmittingRequest(false);
+  }
 
   if (isLoadingSession) return <main className="loading-page">Loading your campus community...</main>;
   if (!session) return <LoginPage />;
 
   return (
     <>
-      <Navbar joinedCount={joinedClubIds.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onSignOut={() => supabase.auth.signOut()} />
+      <Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onSignOut={() => supabase.auth.signOut()} />
       <main>
         <section className="hero-section">
           <div className="hero-copy">
@@ -120,14 +188,16 @@ export default function App() {
           {isLoadingClubs && <p className="loading-state">Loading clubs...</p>}
           {clubsError && <p className="form-message error-message" role="alert">{clubsError}</p>}
           {!isLoadingClubs && !clubsError && (
-            <ClubGrid clubs={filteredClubs} joinedClubIds={joinedClubIds} onJoin={toggleJoinedClub} onViewDetails={setActiveClub} />
+            <ClubGrid clubs={filteredClubs} requestStatuses={requestStatuses} onRequest={openRequestModal} onViewDetails={setActiveClub} />
           )}
         </section>
       </main>
 
-      {activeClub && <ClubDetailsModal club={activeClub} onClose={() => setActiveClub(null)} />}
+      {activeClub && <ClubDetailsModal club={activeClub} requestStatus={requestStatuses[activeClub.id]} onRequest={openRequestModal} onClose={() => setActiveClub(null)} />}
 
       {isJoinedDrawerOpen && <JoinedDrawer clubs={joinedClubs} onClose={() => setIsJoinedDrawerOpen(false)} />}
+      {isRequestsDrawerOpen && <RequestsDrawer requests={requests} onClose={() => setIsRequestsDrawerOpen(false)} />}
+      {requestClub && <MembershipRequestModal club={requestClub} onClose={() => setRequestClub(null)} onSubmit={submitMembershipRequest} isSubmitting={isSubmittingRequest} error={requestError} />}
     </>
   );
 }

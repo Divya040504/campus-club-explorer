@@ -92,6 +92,17 @@ a { color: inherit; }
 .join-button.joined:hover { background: #e9b93d; border-color: #e9b93d; }
 .empty-state { background: var(--card); border: 1px dashed #bcc6c0; color: var(--muted); padding: 32px; text-align: center; }
 .loading-state { color: var(--muted); padding: 32px 0; }
+.request-status { font-size: .72rem; font-weight: 700; text-transform: capitalize; }
+.request-status.pending { color: #a26b00; }
+.request-status.approved { color: var(--teal); }
+.request-status.rejected { color: #b54938; }
+.request-intro { color: var(--muted); line-height: 1.5; margin: 18px 0 24px; }
+.request-form { display: grid; gap: 16px; }
+.request-form label { display: grid; font-size: .85rem; font-weight: 700; gap: 7px; }
+.request-form label span { color: var(--muted); font-weight: 400; }
+.request-form textarea { border: 1px solid var(--line); border-radius: 5px; color: var(--ink); padding: 12px; resize: vertical; }
+.request-form textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px #176b6622; outline: 0; }
+.modal-request-button { margin-top: 24px; width: 100%; }
 
 .modal-backdrop, .drawer-backdrop { align-items: center; background: #17242499; display: flex; inset: 0; justify-content: center; padding: 20px; position: fixed; z-index: 10; }
 .details-modal { background: var(--card); border-radius: 8px; max-width: 520px; padding: 34px; position: relative; width: 100%; }

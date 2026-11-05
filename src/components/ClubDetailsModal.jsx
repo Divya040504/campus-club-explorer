@@ -1,4 +1,4 @@
-export function ClubDetailsModal({ club, onClose }) {
+export function ClubDetailsModal({ club, requestStatus, onRequest, onClose }) {
   if (!club) return null;
 
   return (
@@ -13,6 +13,9 @@ export function ClubDetailsModal({ club, onClose }) {
           <span>Contact</span>
           <a href={`mailto:${club.contact}`}>{club.contact}</a>
         </div>
+        <button className="auth-submit modal-request-button" type="button" onClick={() => onRequest(club)} disabled={requestStatus === 'pending' || requestStatus === 'approved'}>
+          {requestStatus === 'approved' ? 'Member of this club' : requestStatus === 'pending' ? 'Request pending' : requestStatus === 'rejected' ? 'Request again' : 'Request to join'}
+        </button>
       </section>
     </div>
   );
