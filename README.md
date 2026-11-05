@@ -41,3 +41,5 @@ The current first phase provides Supabase email/password registration, login, se
 The database schema is stored in [supabase/migrations/20261105170000_initial_schema.sql](./supabase/migrations/20261105170000_initial_schema.sql). After creating the Supabase project, open **SQL Editor**, paste the migration contents, and run it. This creates profiles, clubs, membership requests, help desk messages, events, role helpers, Row Level Security policies, and a database-level venue conflict constraint.
 
 The migration uses `btree_gist` and a PostgreSQL exclusion constraint to reject overlapping events in the same venue. This protects scheduling even if events are created outside the frontend.
+
+The starter club records are in [supabase/migrations/20261105192000_seed_clubs.sql](./supabase/migrations/20261105192000_seed_clubs.sql). Run this migration after the initial schema migration to populate the `clubs` table.
