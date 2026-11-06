@@ -22,6 +22,7 @@ export function LoginPage() {
     }
 
     setIsSubmitting(true);
+    sessionStorage.setItem('campus-club-portal', selectedPortal);
     const result = isRegistering
       ? await supabase.auth.signUp({
           email,
