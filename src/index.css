@@ -48,6 +48,12 @@ a { color: inherit; }
 .auth-submit { background: var(--teal); border: 1px solid var(--teal); border-radius: 5px; color: white; font-weight: 700; margin-top: 5px; padding: 13px; }
 .auth-submit:hover { background: var(--teal-dark); border-color: var(--teal-dark); }
 .auth-submit:disabled { cursor: wait; opacity: .7; }
+.auth-divider { align-items: center; color: var(--muted); display: flex; font-size: .78rem; gap: 12px; margin: 20px 0 0; }
+.auth-divider::before, .auth-divider::after { background: var(--line); content: ''; flex: 1; height: 1px; }
+.google-submit { align-items: center; background: white; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); display: flex; font-weight: 700; gap: 10px; justify-content: center; margin-top: 16px; padding: 12px; width: 100%; }
+.google-submit:hover { background: #f5f7f4; border-color: var(--teal); }
+.google-submit:disabled { cursor: wait; opacity: .7; }
+.google-mark { color: #4285f4; font-family: Arial, sans-serif; font-size: 1.15rem; font-weight: 700; }
 .auth-switch { background: transparent; border: 0; color: var(--teal-dark); display: block; font-size: .88rem; margin: 22px auto 0; padding: 4px; }
 .form-message { font-size: .85rem; line-height: 1.45; margin: 0; }
 .error-message { color: #b54938; }
