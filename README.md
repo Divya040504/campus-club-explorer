@@ -51,3 +51,13 @@ If Supabase reports `permission denied for table clubs`, run [supabase/migration
 The administrator dashboard also requires [supabase/migrations/20261105215000_grant_admin_updates.sql](./supabase/migrations/20261105215000_grant_admin_updates.sql) so authenticated requests can reach the existing admin-only update policies for profiles and clubs.
 
 If an account was created before the schema migration, run [supabase/migrations/20261105225500_backfill_existing_profiles.sql](./supabase/migrations/20261105225500_backfill_existing_profiles.sql) once to create its missing profile row.
+
+To grant an existing account administrator access, run this in Supabase SQL Editor, replacing the email:
+
+```sql
+update public.profiles
+set role = 'admin', updated_at = now()
+where id = (select id from auth.users where email = 'admin@example.com');
+```
+
+The portal choice at sign-in is checked against this database role; selecting Administrator alone does not grant administrator access.

@@ -57,6 +57,7 @@ export default function App() {
     if (!session || !supabase) return;
 
     async function verifyPortalRole() {
+      const selectedPortal = sessionStorage.getItem('campus-club-portal');
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
@@ -67,6 +68,10 @@ export default function App() {
         setRoleError(`We could not verify your account role: ${error.message}`);
       } else if (!data) {
         setRoleError('Your account profile is missing. Run the existing-profile backfill migration in Supabase SQL Editor, then sign in again.');
+      } else if (selectedPortal && data.role !== selectedPortal) {
+        const roleName = data.role.replace('_', ' ');
+        const selectedPortalName = selectedPortal.replace('_', ' ');
+        setRoleError(`This account is registered as ${roleName}, not ${selectedPortalName}. Select the correct portal and sign in again.`);
       } else {
         setUserRole(data.role);
         setRoleError('');
@@ -195,7 +200,12 @@ export default function App() {
   }
 
   if (isLoadingSession) return <main className="loading-page">Loading your campus community...</main>;
-  if (roleError && session) return <main className="loading-page">{roleError}</main>;
+  if (roleError && session) return (
+    <main className="loading-page">
+      <p>{roleError}</p>
+      <button className="details-button" type="button" onClick={() => supabase.auth.signOut()}>Back to sign in</button>
+    </main>
+  );
   if (!session) return <LoginPage />;
   if (userRole === 'admin') return <AdminDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
   if (userRole === 'club_lead') return <ClubLeadDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
