@@ -57,7 +57,6 @@ export default function App() {
     if (!session || !supabase) return;
 
     async function verifyPortalRole() {
-      const selectedPortal = sessionStorage.getItem('campus-club-portal') || 'student';
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
@@ -68,9 +67,6 @@ export default function App() {
         setRoleError(`We could not verify your account role: ${error.message}`);
       } else if (!data) {
         setRoleError('Your account profile is missing. Run the existing-profile backfill migration in Supabase SQL Editor, then sign in again.');
-      } else if (data.role !== selectedPortal) {
-        setRoleError(`This account is registered as ${data.role.replace('_', ' ')}, not ${selectedPortal.replace('_', ' ')}. Choose the correct portal and sign in again.`);
-        await supabase.auth.signOut();
       } else {
         setUserRole(data.role);
         setRoleError('');
