@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { EventsPage } from './EventsPage';
+import { ProfilePage } from './ProfilePage';
 
 export function ClubLeadDashboard({ session, onSignOut }) {
   const [clubs, setClubs] = useState([]);
@@ -8,6 +9,7 @@ export function ClubLeadDashboard({ session, onSignOut }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   async function loadLeadData() {
     setIsLoading(true);
@@ -68,6 +70,10 @@ export function ClubLeadDashboard({ session, onSignOut }) {
     }
   }
 
+  if (isProfileOpen) {
+    return <ProfilePage session={session} userRole="club_lead" onBack={() => setIsProfileOpen(false)} onSignOut={onSignOut} />;
+  }
+
   return (
     <>
       <header className="navbar">
@@ -75,7 +81,10 @@ export function ClubLeadDashboard({ session, onSignOut }) {
           <span className="brand-mark">CC</span>
           <span>Campus Club Explorer</span>
         </a>
-        <button className="sign-out-button" type="button" onClick={onSignOut}>Sign out</button>
+        <div className="navbar-actions">
+          <button className="joined-button" type="button" onClick={() => setIsProfileOpen(true)}>Profile</button>
+          <button className="sign-out-button" type="button" onClick={onSignOut}>Sign out</button>
+        </div>
       </header>
       <main className="admin-page">
         <div className="admin-heading">
