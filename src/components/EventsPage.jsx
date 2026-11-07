@@ -21,6 +21,7 @@ export function EventsPage({ session, userRole, onClose }) {
   const [form, setForm] = useState(emptyForm());
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [scheduleWarning, setScheduleWarning] = useState('');
   const canManageEvents = userRole === 'admin' || userRole === 'club_lead';
 
   async function loadEvents() {
@@ -71,23 +72,77 @@ export function EventsPage({ session, userRole, onClose }) {
     setForm(emptyForm(firstClub?.id || ''));
     setError('');
     setMessage('');
+    setScheduleWarning('');
     setIsFormOpen(true);
+  }
+
+  function checkSchedule() {
+    const selectedClub = manageableClubs.find((club) => String(club.id) === String(form.clubId));
+    const startsAt = new Date(form.startsAt);
+    const endsAt = new Date(form.endsAt);
+
+    if (!selectedClub || Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) {
+      setScheduleWarning('');
+      return;
+    }
+
+    const venue = (form.venue || selectedClub.venue).trim().toLowerCase();
+    const overlappingEvent = events.find((existingEvent) => (
+      existingEvent.venue.trim().toLowerCase() === venue
+      && startsAt < new Date(existingEvent.ends_at)
+      && endsAt > new Date(existingEvent.starts_at)
+    ));
+
+    if (overlappingEvent) {
+      setScheduleWarning(`Venue conflict: "${overlappingEvent.title}" already uses ${overlappingEvent.venue} during this time.`);
+      return;
+    }
+
+    const sameDayEvent = events.find((existingEvent) => (
+      existingEvent.club_id === Number(form.clubId)
+      && startsAt.toDateString() === new Date(existingEvent.starts_at).toDateString()
+    ));
+
+    setScheduleWarning(sameDayEvent
+      ? `Same-day notice: "${sameDayEvent.title}" is already scheduled for this club on this date.`
+      : '');
   }
 
   async function createEvent(event) {
     event.preventDefault();
     setError('');
     setMessage('');
+    setScheduleWarning('');
     const selectedClub = manageableClubs.find((club) => String(club.id) === String(form.clubId));
+    const startsAt = new Date(form.startsAt);
+    const endsAt = new Date(form.endsAt);
+    const venue = (form.venue || selectedClub?.venue || '').trim();
+
+    if (!selectedClub || Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) {
+      setError('Choose a club and a valid time range before saving the event.');
+      return;
+    }
+
+    const overlappingEvent = events.find((existingEvent) => (
+      existingEvent.venue.trim().toLowerCase() === venue.toLowerCase()
+      && startsAt < new Date(existingEvent.ends_at)
+      && endsAt > new Date(existingEvent.starts_at)
+    ));
+
+    if (overlappingEvent) {
+      setError(`This venue is already booked by "${overlappingEvent.title}" during that time.`);
+      return;
+    }
+
     const { data, error: createError } = await supabase
       .from('events')
       .insert({
         club_id: form.clubId,
         title: form.title,
         description: form.description,
-        venue: form.venue || selectedClub?.venue,
-        starts_at: new Date(form.startsAt).toISOString(),
-        ends_at: new Date(form.endsAt).toISOString(),
+        venue,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
         created_by: session.user.id,
       })
       .select('id, club_id, title, description, venue, starts_at, ends_at, clubs(name)')
@@ -168,17 +223,18 @@ export function EventsPage({ session, userRole, onClose }) {
           <div className="admin-panel-heading"><h2>Create event</h2><button className="close-button" type="button" onClick={() => setIsFormOpen(false)} aria-label="Close event form">×</button></div>
           <div className="event-form-grid">
             <label>Club
-              <select value={form.clubId} onChange={(event) => updateField('clubId', event.target.value)} required>
+              <select value={form.clubId} onChange={(event) => { updateField('clubId', event.target.value); setTimeout(checkSchedule, 0); }} required>
                 <option value="">Select a club</option>
                 {manageableClubs.map((club) => <option value={club.id} key={club.id}>{club.name}</option>)}
               </select>
             </label>
             <label>Event title<input value={form.title} onChange={(event) => updateField('title', event.target.value)} required /></label>
-            <label>Venue<input value={form.venue} onChange={(event) => updateField('venue', event.target.value)} placeholder="e.g. VBTF 06" required /></label>
-            <label>Starts<input type="datetime-local" value={form.startsAt} onChange={(event) => updateField('startsAt', event.target.value)} required /></label>
-            <label>Ends<input type="datetime-local" value={form.endsAt} onChange={(event) => updateField('endsAt', event.target.value)} required /></label>
+            <label>Venue<input value={form.venue} onChange={(event) => { updateField('venue', event.target.value); setTimeout(checkSchedule, 0); }} placeholder="e.g. VBTF 06" required /></label>
+            <label>Starts<input type="datetime-local" value={form.startsAt} onChange={(event) => { updateField('startsAt', event.target.value); setTimeout(checkSchedule, 0); }} required /></label>
+            <label>Ends<input type="datetime-local" value={form.endsAt} onChange={(event) => { updateField('endsAt', event.target.value); setTimeout(checkSchedule, 0); }} required /></label>
             <label className="event-description">Description<textarea value={form.description} onChange={(event) => updateField('description', event.target.value)} rows="3" /></label>
           </div>
+          {scheduleWarning && <p className="form-message warning-message" role="status">{scheduleWarning}</p>}
           <button className="auth-submit" type="submit">Save event</button>
         </form>
       )}
