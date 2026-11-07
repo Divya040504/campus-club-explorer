@@ -43,6 +43,28 @@ export function LoginPage() {
     }
   }
 
+  async function handleGoogleSignIn() {
+    setError('');
+    setMessage('');
+
+    if (!isSupabaseConfigured || !supabase) {
+      setError(supabaseConfigError || 'Supabase is not configured. Check the values in .env.local and restart the app.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    sessionStorage.setItem('campus-club-portal', selectedPortal);
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+
+    if (oauthError) {
+      setIsSubmitting(false);
+      setError(oauthError.message);
+    }
+  }
+
   return (
     <main className="auth-page">
       <section className="auth-card" aria-labelledby="auth-title">
@@ -97,6 +119,16 @@ export function LoginPage() {
             {isSubmitting ? 'Please wait...' : isRegistering ? 'Create account' : 'Sign in'}
           </button>
         </form>
+
+        {!isRegistering && (
+          <>
+            <div className="auth-divider"><span>or</span></div>
+            <button className="google-submit" type="button" onClick={handleGoogleSignIn} disabled={isSubmitting}>
+              <span className="google-mark" aria-hidden="true">G</span>
+              Continue with Google
+            </button>
+          </>
+        )}
 
         <button className="auth-switch" type="button" onClick={() => { setIsRegistering(!isRegistering); setSelectedPortal('student'); setError(''); setMessage(''); }}>
           {isRegistering ? 'Already have an account? Sign in' : 'New student? Create an account'}
