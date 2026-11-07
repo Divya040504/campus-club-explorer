@@ -47,7 +47,10 @@ export function EventsPage({ session, userRole, onClose }) {
         ? clubData.filter((club) => club.lead_id === session.user.id)
         : clubData;
       setClubs(visibleClubs);
-      setEvents(eventData);
+      const visibleEvents = userRole === 'club_lead'
+        ? eventData.filter((event) => visibleClubs.some((club) => club.id === event.club_id))
+        : eventData;
+      setEvents(visibleEvents);
       setAttendanceRequests(attendanceData);
     }
     setIsLoading(false);
