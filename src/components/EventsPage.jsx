@@ -14,6 +14,7 @@ function emptyForm(clubId = '') {
 
 export function EventsPage({ session, userRole, onClose }) {
   const [events, setEvents] = useState([]);
+  const [attendanceRequests, setAttendanceRequests] = useState([]);
   const [clubs, setClubs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -29,20 +30,25 @@ export function EventsPage({ session, userRole, onClose }) {
       .from('events')
       .select('id, club_id, title, description, venue, starts_at, ends_at, clubs(name)')
       .order('starts_at');
+    const attendanceQuery = supabase
+      .from('event_attendance_requests')
+      .select('id, event_id, status')
+      .eq('student_id', session.user.id);
     const clubsQuery = supabase
       .from('clubs')
       .select('id, name, venue, lead_id')
       .order('name');
-    const [{ data: eventData, error: eventsError }, { data: clubData, error: clubsError }] = await Promise.all([eventsQuery, clubsQuery]);
+    const [{ data: eventData, error: eventsError }, { data: clubData, error: clubsError }, { data: attendanceData, error: attendanceError }] = await Promise.all([eventsQuery, clubsQuery, attendanceQuery]);
 
-    if (eventsError || clubsError) {
-      setError(eventsError?.message || clubsError.message);
+    if (eventsError || clubsError || attendanceError) {
+      setError(eventsError?.message || clubsError?.message || attendanceError.message);
     } else {
       const visibleClubs = userRole === 'club_lead'
         ? clubData.filter((club) => club.lead_id === session.user.id)
         : clubData;
       setClubs(visibleClubs);
       setEvents(eventData);
+      setAttendanceRequests(attendanceData);
     }
     setIsLoading(false);
   }
@@ -106,6 +112,38 @@ export function EventsPage({ session, userRole, onClose }) {
       setEvents((current) => current.filter((event) => event.id !== eventId));
       setMessage('Event deleted.');
     }
+
+    async function requestAttendance(eventId) {
+      setError('');
+      setMessage('');
+      const { data, error: requestError } = await supabase
+        .from('event_attendance_requests')
+        .insert({ event_id: eventId, student_id: session.user.id })
+        .select('id, event_id, status')
+        .single();
+
+      if (requestError) {
+        setError(requestError.code === '23505' ? 'You already requested to attend this event.' : requestError.message);
+      } else {
+        setAttendanceRequests((current) => [...current, data]);
+        setMessage('Attendance request submitted.');
+      }
+    }
+
+    async function cancelAttendance(requestId) {
+      setError('');
+      setMessage('');
+      const { error: cancelError } = await supabase
+        .from('event_attendance_requests')
+        .delete()
+        .eq('id', requestId);
+
+      if (cancelError) setError(cancelError.message);
+      else {
+        setAttendanceRequests((current) => current.filter((request) => request.id !== requestId));
+        setMessage('Attendance request cancelled.');
+      }
+    }
   }
 
   return (
@@ -152,6 +190,16 @@ export function EventsPage({ session, userRole, onClose }) {
               <p className="event-club">{event.clubs?.name} · {event.venue}</p>
               <p>{event.description || 'Join the club community for this event.'}</p>
               <p className="event-time">Until {formatEventDate(event.ends_at)}</p>
+              {userRole === 'student' && (() => {
+                const attendance = attendanceRequests.find((request) => request.event_id === event.id);
+                if (!attendance) return <button className="join-button" type="button" onClick={() => requestAttendance(event.id)}>Request to attend</button>;
+                return (
+                  <div className="event-attendance">
+                    <span className={`request-status ${attendance.status}`}>Attendance {attendance.status}</span>
+                    {attendance.status === 'pending' && <button className="details-button" type="button" onClick={() => cancelAttendance(attendance.id)}>Cancel request</button>}
+                  </div>
+                );
+              })()}
               {canManageEvents && <button className="details-button" type="button" onClick={() => deleteEvent(event.id)}>Delete event</button>}
             </article>
           ))}

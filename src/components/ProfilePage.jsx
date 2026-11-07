@@ -22,14 +22,15 @@ export function ProfilePage({ session, userRole, onBack, onSignOut }) {
     async function loadProfileData() {
       setIsLoading(true);
       setError('');
-      const [profileResult, membershipResult, eventsResult] = await Promise.all([
+      const [profileResult, membershipResult, createdEventsResult, attendanceEventsResult] = await Promise.all([
         supabase.from('profiles').select('full_name, avatar_url, bio, campus, course').eq('id', session.user.id).single(),
         supabase.from('membership_requests').select('id, status, clubs(name)').eq('student_id', session.user.id).order('created_at', { ascending: false }),
-        supabase.from('events').select('id, title, venue, starts_at, clubs(name)').or(`created_by.eq.${session.user.id}`).order('starts_at'),
+        supabase.from('events').select('id, title, venue, starts_at, clubs(name)').eq('created_by', session.user.id).order('starts_at'),
+        supabase.from('event_attendance_requests').select('status, events(id, title, venue, starts_at, clubs(name))').eq('student_id', session.user.id),
       ]);
 
-      if (profileResult.error || membershipResult.error || eventsResult.error) {
-        setError(profileResult.error?.message || membershipResult.error?.message || eventsResult.error.message);
+      if (profileResult.error || membershipResult.error || createdEventsResult.error || attendanceEventsResult.error) {
+        setError(profileResult.error?.message || membershipResult.error?.message || createdEventsResult.error?.message || attendanceEventsResult.error.message);
       } else {
         const nextProfile = profileResult.data;
         setProfile(nextProfile);
@@ -42,7 +43,12 @@ export function ProfilePage({ session, userRole, onBack, onSignOut }) {
         });
         setRequests(membershipResult.data);
         setClubs(membershipResult.data.filter((request) => request.status === 'approved'));
-        setEvents(eventsResult.data);
+        const createdEvents = createdEventsResult.data;
+        const attendedEvents = attendanceEventsResult.data.map((request) => ({
+          ...request.events,
+          attendanceStatus: request.status,
+        }));
+        setEvents([...createdEvents, ...attendedEvents.filter((event) => !createdEvents.some((createdEvent) => createdEvent.id === event.id))]);
       }
       setIsLoading(false);
     }

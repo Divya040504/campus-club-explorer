@@ -48,6 +48,7 @@ a { color: inherit; }
 .profile-side { display: grid; align-content: start; gap: 22px; }
 .profile-list-item { border-top: 1px solid var(--line); display: grid; gap: 5px; margin: 0; padding: 13px 0; }
 .profile-list-item span { color: var(--muted); font-size: .82rem; }
+.event-attendance { align-items: center; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
 
 .auth-page, .loading-page { align-items: center; background: var(--teal); display: flex; justify-content: center; min-height: 100vh; padding: 24px; }
 .loading-page { color: white; font-size: 1.1rem; }
