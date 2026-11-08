@@ -100,7 +100,11 @@ export function ProfilePage({ session, userRole, onBack, onSignOut }) {
         {isLoading ? <p className="loading-state">Loading your profile...</p> : (
           <>
             <section className="profile-header">
-              <div className="profile-avatar">{(form.fullName || session.user.email || 'U').charAt(0).toUpperCase()}</div>
+              <div className="profile-avatar">
+                {form.avatarUrl
+                  ? <img src={form.avatarUrl} alt="" />
+                  : (form.fullName || session.user.email || 'U').charAt(0).toUpperCase()}
+              </div>
               <div>
                 <p className="eyebrow">Account profile</p>
                 <h1>{form.fullName || 'Your profile'}</h1>
