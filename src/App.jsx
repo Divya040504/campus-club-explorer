@@ -212,7 +212,7 @@ export default function App() {
   if (userRole === 'admin') return <AdminDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
   if (userRole === 'club_lead') return <ClubLeadDashboard session={session} onSignOut={() => supabase.auth.signOut()} />;
   if (isProfileOpen) return <ProfilePage session={session} userRole={userRole} onBack={() => setIsProfileOpen(false)} onSignOut={() => supabase.auth.signOut()} />;
-  if (isEventsOpen) return <><Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(false)} onOpenHelpDesk={() => setIsHelpDeskOpen(true)} onOpenProfile={() => setIsProfileOpen(true)} onSignOut={() => supabase.auth.signOut()} /><EventsPage session={session} userRole={userRole} onClose={() => setIsEventsOpen(false)} />{isHelpDeskOpen && <HelpDeskModal clubs={clubs} onClose={() => setIsHelpDeskOpen(false)} />}</>;
+  if (isEventsOpen) return <><Navbar joinedCount={joinedClubIds.length} requestCount={requests.length} onOpenJoined={() => setIsJoinedDrawerOpen(true)} onOpenRequests={() => setIsRequestsDrawerOpen(true)} onOpenEvents={() => setIsEventsOpen(false)} onOpenHelpDesk={() => setIsHelpDeskOpen(true)} onOpenProfile={() => setIsProfileOpen(true)} onSignOut={() => supabase.auth.signOut()} /><EventsPage session={session} userRole={userRole} onClose={() => setIsEventsOpen(false)} />{isHelpDeskOpen && <HelpDeskModal clubs={clubs} session={session} onClose={() => setIsHelpDeskOpen(false)} />}</>;
 
   return (
     <>
@@ -250,7 +250,7 @@ export default function App() {
       {isJoinedDrawerOpen && <JoinedDrawer clubs={joinedClubs} onClose={() => setIsJoinedDrawerOpen(false)} />}
       {isRequestsDrawerOpen && <RequestsDrawer requests={requests} onClose={() => setIsRequestsDrawerOpen(false)} />}
       {requestClub && <MembershipRequestModal club={requestClub} onClose={() => setRequestClub(null)} onSubmit={submitMembershipRequest} isSubmitting={isSubmittingRequest} error={requestError} />}
-      {isHelpDeskOpen && <HelpDeskModal clubs={clubs} onClose={() => setIsHelpDeskOpen(false)} />}
+      {isHelpDeskOpen && <HelpDeskModal clubs={clubs} session={session} onClose={() => setIsHelpDeskOpen(false)} />}
     </>
   );
 }

@@ -1,3 +1,5 @@
+import { ThemeToggle } from './ThemeToggle';
+
 export function Navbar({ joinedCount, requestCount, onOpenJoined, onOpenRequests, onOpenEvents, onOpenHelpDesk, onOpenProfile, onSignOut }) {
   return (
     <header className="navbar">
@@ -18,6 +20,7 @@ export function Navbar({ joinedCount, requestCount, onOpenJoined, onOpenRequests
           <span className="profile-button-avatar" aria-hidden="true">U</span>
           <span>Profile</span>
         </button>
+        <ThemeToggle />
         <button className="sign-out-button" type="button" onClick={onSignOut}>Sign out</button>
       </div>
     </header>

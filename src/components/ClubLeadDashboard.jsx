@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { EventsPage } from './EventsPage';
 import { ProfilePage } from './ProfilePage';
+import { ThemeToggle } from './ThemeToggle';
 
 export function ClubLeadDashboard({ session, onSignOut }) {
   const [clubs, setClubs] = useState([]);
@@ -152,6 +153,7 @@ export function ClubLeadDashboard({ session, onSignOut }) {
             <span className="profile-button-avatar" aria-hidden="true">U</span>
             <span>Profile</span>
           </button>
+          <ThemeToggle />
           <button className="sign-out-button" type="button" onClick={onSignOut}>Sign out</button>
         </div>
       </header>

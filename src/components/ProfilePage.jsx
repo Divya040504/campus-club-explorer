@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { ThemeToggle } from './ThemeToggle';
 
 const roleLabels = {
   student: 'Student',
@@ -17,6 +18,7 @@ export function ProfilePage({ session, userRole, onBack, onSignOut }) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
 
   useEffect(() => {
     async function loadProfileData() {
@@ -65,11 +67,24 @@ export function ProfilePage({ session, userRole, onBack, onSignOut }) {
     setIsSaving(true);
     setError('');
     setMessage('');
+    let avatarUrl = form.avatarUrl.trim() || null;
+    if (selectedAvatar) {
+      const extension = selectedAvatar.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${session.user.id}/avatar.${extension}`;
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, selectedAvatar, { upsert: true, contentType: selectedAvatar.type });
+      if (uploadError) {
+        setError(`Could not upload profile photo: ${uploadError.message}`);
+        setIsSaving(false);
+        return;
+      }
+      const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      avatarUrl = publicUrlData.publicUrl;
+    }
     const { data, error: saveError } = await supabase
       .from('profiles')
       .update({
         full_name: form.fullName.trim(),
-        avatar_url: form.avatarUrl.trim() || null,
+        avatar_url: avatarUrl,
         bio: form.bio.trim(),
         campus: form.campus.trim(),
         course: form.course.trim(),
@@ -82,6 +97,8 @@ export function ProfilePage({ session, userRole, onBack, onSignOut }) {
     if (saveError) setError(saveError.message);
     else {
       setProfile(data);
+      setSelectedAvatar(null);
+      setForm((current) => ({ ...current, avatarUrl: data.avatar_url || '' }));
       setMessage('Profile updated successfully.');
     }
     setIsSaving(false);
@@ -94,11 +111,15 @@ export function ProfilePage({ session, userRole, onBack, onSignOut }) {
           <span className="brand-mark">CC</span>
           <span>Campus Club Explorer</span>
         </button>
-        <button className="sign-out-button" type="button" onClick={onSignOut}>Sign out</button>
+        <div className="navbar-actions">
+          <ThemeToggle />
+          <button className="sign-out-button" type="button" onClick={onSignOut}>Sign out</button>
+        </div>
       </header>
       <main className="profile-page">
         {isLoading ? <p className="loading-state">Loading your profile...</p> : (
           <>
+            <button className="details-button profile-dashboard-button" type="button" onClick={onBack}>Back to dashboard</button>
             <section className="profile-header">
               <div className="profile-avatar">
                 {form.avatarUrl
@@ -117,7 +138,7 @@ export function ProfilePage({ session, userRole, onBack, onSignOut }) {
               <form className="admin-panel profile-form" onSubmit={saveProfile}>
                 <div className="admin-panel-heading"><div><p className="eyebrow">Personal details</p><h2>Edit profile</h2></div></div>
                 <label>Full name<input value={form.fullName} onChange={(event) => updateField('fullName', event.target.value)} required /></label>
-                <label>Profile photo URL<input type="url" value={form.avatarUrl} onChange={(event) => updateField('avatarUrl', event.target.value)} placeholder="https://..." /></label>
+                <label>Profile photo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => setSelectedAvatar(event.target.files?.[0] || null)} /></label>
                 <label>Bio<textarea value={form.bio} onChange={(event) => updateField('bio', event.target.value)} rows="4" maxLength="500" /></label>
                 <label>Campus<input value={form.campus} onChange={(event) => updateField('campus', event.target.value)} /></label>
                 <label>Course<input value={form.course} onChange={(event) => updateField('course', event.target.value)} /></label>

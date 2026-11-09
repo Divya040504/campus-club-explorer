@@ -63,3 +63,5 @@ where id = (select id from auth.users where email = 'admin@example.com');
 The portal choice at sign-in is checked against this database role; selecting Administrator alone does not grant administrator access.
 
 The profile and event attendance foundation is in [supabase/migrations/20261107210000_profiles_and_event_attendance.sql](./supabase/migrations/20261107210000_profiles_and_event_attendance.sql). Run this new migration after the existing migrations to add editable profile details and secure event attendance requests. Existing migrations should not be edited or rerun.
+
+The avatar upload and help-desk persistence foundation is in [supabase/migrations/20261110010000_avatar_storage_and_helpdesk.sql](./supabase/migrations/20261110010000_avatar_storage_and_helpdesk.sql). Run it once after the profile migration to create the public `avatars` bucket, secure per-user storage policies, and authenticated help-desk access.
