@@ -138,6 +138,25 @@ export function EventsPage({ session, userRole, onClose }) {
       return;
     }
 
+    const { data: conflictingEvents, error: conflictQueryError } = await supabase
+      .from('events')
+      .select('id, title, venue, starts_at, ends_at')
+      .eq('venue', venue)
+      .lt('starts_at', endsAt.toISOString())
+      .gt('ends_at', startsAt.toISOString())
+      .limit(1);
+
+    if (conflictQueryError) {
+      setError(`We could not verify the venue schedule: ${conflictQueryError.message}`);
+      return;
+    }
+
+    if (conflictingEvents.length > 0) {
+      setError(`This venue is already booked by "${conflictingEvents[0].title}" during that time.`);
+      setScheduleWarning(`Venue conflict: "${conflictingEvents[0].title}" already uses ${conflictingEvents[0].venue} during this time.`);
+      return;
+    }
+
     const { data, error: createError } = await supabase
       .from('events')
       .insert({
