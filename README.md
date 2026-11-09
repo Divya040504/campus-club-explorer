@@ -61,3 +61,5 @@ where id = (select id from auth.users where email = 'admin@example.com');
 ```
 
 The portal choice at sign-in is checked against this database role; selecting Administrator alone does not grant administrator access.
+
+The profile and event attendance foundation is in [supabase/migrations/20261107210000_profiles_and_event_attendance.sql](./supabase/migrations/20261107210000_profiles_and_event_attendance.sql). Run this new migration after the existing migrations to add editable profile details and secure event attendance requests. Existing migrations should not be edited or rerun.

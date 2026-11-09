@@ -1,4 +1,4 @@
-export function Navbar({ joinedCount, requestCount, onOpenJoined, onOpenRequests, onOpenEvents, onOpenHelpDesk, onSignOut }) {
+export function Navbar({ joinedCount, requestCount, onOpenJoined, onOpenRequests, onOpenEvents, onOpenHelpDesk, onOpenProfile, onSignOut }) {
   return (
     <header className="navbar">
       <a className="brand" href="/" aria-label="Campus Club Explorer home">
@@ -13,6 +13,10 @@ export function Navbar({ joinedCount, requestCount, onOpenJoined, onOpenRequests
         </button>
         <button className="joined-button" type="button" onClick={onOpenJoined}>
           Joined clubs <span>{joinedCount}</span>
+        </button>
+        <button className="profile-button" type="button" onClick={onOpenProfile} aria-label="Open your profile">
+          <span className="profile-button-avatar" aria-hidden="true">U</span>
+          <span>Profile</span>
         </button>
         <button className="sign-out-button" type="button" onClick={onSignOut}>Sign out</button>
       </div>

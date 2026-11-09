@@ -14,12 +14,14 @@ function emptyForm(clubId = '') {
 
 export function EventsPage({ session, userRole, onClose }) {
   const [events, setEvents] = useState([]);
+  const [attendanceRequests, setAttendanceRequests] = useState([]);
   const [clubs, setClubs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [scheduleWarning, setScheduleWarning] = useState('');
   const canManageEvents = userRole === 'admin' || userRole === 'club_lead';
 
   async function loadEvents() {
@@ -29,20 +31,28 @@ export function EventsPage({ session, userRole, onClose }) {
       .from('events')
       .select('id, club_id, title, description, venue, starts_at, ends_at, clubs(name)')
       .order('starts_at');
+    const attendanceQuery = supabase
+      .from('event_attendance_requests')
+      .select('id, event_id, status')
+      .eq('student_id', session.user.id);
     const clubsQuery = supabase
       .from('clubs')
       .select('id, name, venue, lead_id')
       .order('name');
-    const [{ data: eventData, error: eventsError }, { data: clubData, error: clubsError }] = await Promise.all([eventsQuery, clubsQuery]);
+    const [{ data: eventData, error: eventsError }, { data: clubData, error: clubsError }, { data: attendanceData, error: attendanceError }] = await Promise.all([eventsQuery, clubsQuery, attendanceQuery]);
 
-    if (eventsError || clubsError) {
-      setError(eventsError?.message || clubsError.message);
+    if (eventsError || clubsError || attendanceError) {
+      setError(eventsError?.message || clubsError?.message || attendanceError.message);
     } else {
       const visibleClubs = userRole === 'club_lead'
         ? clubData.filter((club) => club.lead_id === session.user.id)
         : clubData;
       setClubs(visibleClubs);
-      setEvents(eventData);
+      const visibleEvents = userRole === 'club_lead'
+        ? eventData.filter((event) => visibleClubs.some((club) => club.id === event.club_id))
+        : eventData;
+      setEvents(visibleEvents);
+      setAttendanceRequests(attendanceData);
     }
     setIsLoading(false);
   }
@@ -50,6 +60,10 @@ export function EventsPage({ session, userRole, onClose }) {
   useEffect(() => {
     loadEvents();
   }, []);
+
+  useEffect(() => {
+    if (isFormOpen) checkSchedule();
+  }, [form.clubId, form.venue, form.startsAt, form.endsAt, events, isFormOpen]);
 
   const manageableClubs = useMemo(() => clubs, [clubs]);
 
@@ -62,23 +76,77 @@ export function EventsPage({ session, userRole, onClose }) {
     setForm(emptyForm(firstClub?.id || ''));
     setError('');
     setMessage('');
+    setScheduleWarning('');
     setIsFormOpen(true);
+  }
+
+  function checkSchedule() {
+    const selectedClub = manageableClubs.find((club) => String(club.id) === String(form.clubId));
+    const startsAt = new Date(form.startsAt);
+    const endsAt = new Date(form.endsAt);
+
+    if (!selectedClub || Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) {
+      setScheduleWarning('');
+      return;
+    }
+
+    const venue = (form.venue || selectedClub.venue).trim().toLowerCase();
+    const overlappingEvent = events.find((existingEvent) => (
+      existingEvent.venue.trim().toLowerCase() === venue
+      && startsAt < new Date(existingEvent.ends_at)
+      && endsAt > new Date(existingEvent.starts_at)
+    ));
+
+    if (overlappingEvent) {
+      setScheduleWarning(`Venue conflict: "${overlappingEvent.title}" already uses ${overlappingEvent.venue} during this time.`);
+      return;
+    }
+
+    const sameDayEvent = events.find((existingEvent) => (
+      existingEvent.club_id === Number(form.clubId)
+      && startsAt.toDateString() === new Date(existingEvent.starts_at).toDateString()
+    ));
+
+    setScheduleWarning(sameDayEvent
+      ? `Same-day notice: "${sameDayEvent.title}" is already scheduled for this club on this date.`
+      : '');
   }
 
   async function createEvent(event) {
     event.preventDefault();
     setError('');
     setMessage('');
+    setScheduleWarning('');
     const selectedClub = manageableClubs.find((club) => String(club.id) === String(form.clubId));
+    const startsAt = new Date(form.startsAt);
+    const endsAt = new Date(form.endsAt);
+    const venue = (form.venue || selectedClub?.venue || '').trim();
+
+    if (!selectedClub || Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) {
+      setError('Choose a club and a valid time range before saving the event.');
+      return;
+    }
+
+    const overlappingEvent = events.find((existingEvent) => (
+      existingEvent.venue.trim().toLowerCase() === venue.toLowerCase()
+      && startsAt < new Date(existingEvent.ends_at)
+      && endsAt > new Date(existingEvent.starts_at)
+    ));
+
+    if (overlappingEvent) {
+      setError(`This venue is already booked by "${overlappingEvent.title}" during that time.`);
+      return;
+    }
+
     const { data, error: createError } = await supabase
       .from('events')
       .insert({
         club_id: form.clubId,
         title: form.title,
         description: form.description,
-        venue: form.venue || selectedClub?.venue,
-        starts_at: new Date(form.startsAt).toISOString(),
-        ends_at: new Date(form.endsAt).toISOString(),
+        venue,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
         created_by: session.user.id,
       })
       .select('id, club_id, title, description, venue, starts_at, ends_at, clubs(name)')
@@ -105,6 +173,38 @@ export function EventsPage({ session, userRole, onClose }) {
     else {
       setEvents((current) => current.filter((event) => event.id !== eventId));
       setMessage('Event deleted.');
+    }
+  }
+
+  async function requestAttendance(eventId) {
+    setError('');
+    setMessage('');
+    const { data, error: requestError } = await supabase
+      .from('event_attendance_requests')
+      .insert({ event_id: eventId, student_id: session.user.id })
+      .select('id, event_id, status')
+      .single();
+
+    if (requestError) {
+      setError(requestError.code === '23505' ? 'You already requested to attend this event.' : requestError.message);
+    } else {
+      setAttendanceRequests((current) => [...current, data]);
+      setMessage('Attendance request submitted.');
+    }
+  }
+
+  async function cancelAttendance(requestId) {
+    setError('');
+    setMessage('');
+    const { error: cancelError } = await supabase
+      .from('event_attendance_requests')
+      .delete()
+      .eq('id', requestId);
+
+    if (cancelError) setError(cancelError.message);
+    else {
+      setAttendanceRequests((current) => current.filter((request) => request.id !== requestId));
+      setMessage('Attendance request cancelled.');
     }
   }
 
@@ -138,6 +238,7 @@ export function EventsPage({ session, userRole, onClose }) {
             <label>Ends<input type="datetime-local" value={form.endsAt} onChange={(event) => updateField('endsAt', event.target.value)} required /></label>
             <label className="event-description">Description<textarea value={form.description} onChange={(event) => updateField('description', event.target.value)} rows="3" /></label>
           </div>
+          {scheduleWarning && <p className="form-message warning-message" role="status">{scheduleWarning}</p>}
           <button className="auth-submit" type="submit">Save event</button>
         </form>
       )}
@@ -152,6 +253,16 @@ export function EventsPage({ session, userRole, onClose }) {
               <p className="event-club">{event.clubs?.name} · {event.venue}</p>
               <p>{event.description || 'Join the club community for this event.'}</p>
               <p className="event-time">Until {formatEventDate(event.ends_at)}</p>
+              {userRole === 'student' && (() => {
+                const attendance = attendanceRequests.find((request) => request.event_id === event.id);
+                if (!attendance) return <button className="join-button" type="button" onClick={() => requestAttendance(event.id)}>Request to attend</button>;
+                return (
+                  <div className="event-attendance">
+                    <span className={`request-status ${attendance.status}`}>Attendance {attendance.status}</span>
+                    {attendance.status === 'pending' && <button className="details-button" type="button" onClick={() => cancelAttendance(attendance.id)}>Cancel request</button>}
+                  </div>
+                );
+              })()}
               {canManageEvents && <button className="details-button" type="button" onClick={() => deleteEvent(event.id)}>Delete event</button>}
             </article>
           ))}
