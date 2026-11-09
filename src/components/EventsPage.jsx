@@ -61,6 +61,10 @@ export function EventsPage({ session, userRole, onClose }) {
     loadEvents();
   }, []);
 
+  useEffect(() => {
+    if (isFormOpen) checkSchedule();
+  }, [form.clubId, form.venue, form.startsAt, form.endsAt, events, isFormOpen]);
+
   const manageableClubs = useMemo(() => clubs, [clubs]);
 
   function updateField(field, value) {
@@ -223,15 +227,15 @@ export function EventsPage({ session, userRole, onClose }) {
           <div className="admin-panel-heading"><h2>Create event</h2><button className="close-button" type="button" onClick={() => setIsFormOpen(false)} aria-label="Close event form">×</button></div>
           <div className="event-form-grid">
             <label>Club
-              <select value={form.clubId} onChange={(event) => { updateField('clubId', event.target.value); setTimeout(checkSchedule, 0); }} required>
+              <select value={form.clubId} onChange={(event) => updateField('clubId', event.target.value)} required>
                 <option value="">Select a club</option>
                 {manageableClubs.map((club) => <option value={club.id} key={club.id}>{club.name}</option>)}
               </select>
             </label>
             <label>Event title<input value={form.title} onChange={(event) => updateField('title', event.target.value)} required /></label>
-            <label>Venue<input value={form.venue} onChange={(event) => { updateField('venue', event.target.value); setTimeout(checkSchedule, 0); }} placeholder="e.g. VBTF 06" required /></label>
-            <label>Starts<input type="datetime-local" value={form.startsAt} onChange={(event) => { updateField('startsAt', event.target.value); setTimeout(checkSchedule, 0); }} required /></label>
-            <label>Ends<input type="datetime-local" value={form.endsAt} onChange={(event) => { updateField('endsAt', event.target.value); setTimeout(checkSchedule, 0); }} required /></label>
+            <label>Venue<input value={form.venue} onChange={(event) => updateField('venue', event.target.value)} placeholder="e.g. VBTF 06" required /></label>
+            <label>Starts<input type="datetime-local" value={form.startsAt} onChange={(event) => updateField('startsAt', event.target.value)} required /></label>
+            <label>Ends<input type="datetime-local" value={form.endsAt} onChange={(event) => updateField('endsAt', event.target.value)} required /></label>
             <label className="event-description">Description<textarea value={form.description} onChange={(event) => updateField('description', event.target.value)} rows="3" /></label>
           </div>
           {scheduleWarning && <p className="form-message warning-message" role="status">{scheduleWarning}</p>}

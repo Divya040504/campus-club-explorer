@@ -148,7 +148,10 @@ export function ClubLeadDashboard({ session, onSignOut }) {
           <span>Campus Club Explorer</span>
         </a>
         <div className="navbar-actions">
-          <button className="joined-button" type="button" onClick={() => setIsProfileOpen(true)}>Profile</button>
+          <button className="profile-button" type="button" onClick={() => setIsProfileOpen(true)} aria-label="Open your profile">
+            <span className="profile-button-avatar" aria-hidden="true">U</span>
+            <span>Profile</span>
+          </button>
           <button className="sign-out-button" type="button" onClick={onSignOut}>Sign out</button>
         </div>
       </header>
