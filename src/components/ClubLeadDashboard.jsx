@@ -130,6 +130,11 @@ export function ClubLeadDashboard({ session, onSignOut }) {
   const pendingMembershipCount = requests.filter((request) => request.status === 'pending').length;
   const pendingAttendanceCount = attendanceRequests.filter((request) => request.status === 'pending').length;
   const upcomingEvents = events.filter((event) => new Date(event.starts_at) >= new Date());
+  const attendanceByEvent = attendanceRequests.reduce((summary, request) => {
+    const current = summary[request.event_id] || { approved: 0, pending: 0 };
+    current[request.status] = (current[request.status] || 0) + 1;
+    return { ...summary, [request.event_id]: current };
+  }, {});
 
   if (isProfileOpen) {
     return <ProfilePage session={session} userRole="club_lead" onBack={() => setIsProfileOpen(false)} onSignOut={onSignOut} />;
@@ -172,6 +177,28 @@ export function ClubLeadDashboard({ session, onSignOut }) {
                   {clubs.map((club) => <div className="assigned-club" key={club.id}><strong>{club.name}</strong><span>{club.category} · {club.venue} · {memberCounts[club.id] || 0} members</span></div>)}
                 </div>
               ) : <p className="empty-drawer">No club has been assigned to this account yet.</p>}
+            </section>
+            <section className="admin-panel">
+              <div className="admin-panel-heading">
+                <div><p className="eyebrow">Schedule</p><h2>Upcoming events</h2></div>
+                <span className="result-count">{upcomingEvents.length} events</span>
+              </div>
+              {upcomingEvents.length > 0 ? (
+                <div className="admin-list">
+                  {upcomingEvents.map((event) => {
+                    const counts = attendanceByEvent[event.id] || { approved: 0, pending: 0 };
+                    return (
+                      <div className="admin-row" key={event.id}>
+                        <div>
+                          <strong>{event.title}</strong>
+                          <span>{event.clubs?.name} · {event.venue} · {new Date(event.starts_at).toLocaleString()}</span>
+                        </div>
+                        <span className="event-counts">{counts.approved} approved · {counts.pending} pending</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : <p className="empty-drawer">No upcoming events for your assigned clubs.</p>}
             </section>
             <section className="admin-panel">
               <div className="admin-panel-heading">

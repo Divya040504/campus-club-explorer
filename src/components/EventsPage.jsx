@@ -170,37 +170,37 @@ export function EventsPage({ session, userRole, onClose }) {
       setEvents((current) => current.filter((event) => event.id !== eventId));
       setMessage('Event deleted.');
     }
+  }
 
-    async function requestAttendance(eventId) {
-      setError('');
-      setMessage('');
-      const { data, error: requestError } = await supabase
-        .from('event_attendance_requests')
-        .insert({ event_id: eventId, student_id: session.user.id })
-        .select('id, event_id, status')
-        .single();
+  async function requestAttendance(eventId) {
+    setError('');
+    setMessage('');
+    const { data, error: requestError } = await supabase
+      .from('event_attendance_requests')
+      .insert({ event_id: eventId, student_id: session.user.id })
+      .select('id, event_id, status')
+      .single();
 
-      if (requestError) {
-        setError(requestError.code === '23505' ? 'You already requested to attend this event.' : requestError.message);
-      } else {
-        setAttendanceRequests((current) => [...current, data]);
-        setMessage('Attendance request submitted.');
-      }
+    if (requestError) {
+      setError(requestError.code === '23505' ? 'You already requested to attend this event.' : requestError.message);
+    } else {
+      setAttendanceRequests((current) => [...current, data]);
+      setMessage('Attendance request submitted.');
     }
+  }
 
-    async function cancelAttendance(requestId) {
-      setError('');
-      setMessage('');
-      const { error: cancelError } = await supabase
-        .from('event_attendance_requests')
-        .delete()
-        .eq('id', requestId);
+  async function cancelAttendance(requestId) {
+    setError('');
+    setMessage('');
+    const { error: cancelError } = await supabase
+      .from('event_attendance_requests')
+      .delete()
+      .eq('id', requestId);
 
-      if (cancelError) setError(cancelError.message);
-      else {
-        setAttendanceRequests((current) => current.filter((request) => request.id !== requestId));
-        setMessage('Attendance request cancelled.');
-      }
+    if (cancelError) setError(cancelError.message);
+    else {
+      setAttendanceRequests((current) => current.filter((request) => request.id !== requestId));
+      setMessage('Attendance request cancelled.');
     }
   }
 
