@@ -75,6 +75,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .auth-page, .loading-page { align-items: center; background: var(--teal); display: flex; justify-content: center; min-height: 100vh; padding: 24px; }
 .loading-page { color: white; font-size: 1.1rem; }
 .auth-card { background: var(--card); border-radius: 10px; max-width: 470px; padding: 42px; width: 100%; }
+.auth-theme-toggle { display: flex; justify-content: flex-end; margin-bottom: 12px; }
 .auth-brand { margin-bottom: 42px; }
 .auth-card .eyebrow { color: var(--coral); margin-bottom: 8px; }
 .auth-card h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(2rem, 5vw, 2.8rem); letter-spacing: -.04em; margin: 0 0 10px; }

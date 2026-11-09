@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { isSupabaseConfigured, supabase, supabaseConfigError } from '../lib/supabase';
+import { ThemeToggle } from './ThemeToggle';
 
 export function LoginPage() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -68,6 +69,7 @@ export function LoginPage() {
   return (
     <main className="auth-page">
       <section className="auth-card" aria-labelledby="auth-title">
+        <div className="auth-theme-toggle"><ThemeToggle /></div>
         <div className="brand auth-brand">
           <span className="brand-mark">CC</span>
           <span>Campus Club Explorer</span>
